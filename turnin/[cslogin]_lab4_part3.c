@@ -27,8 +27,6 @@ void TickFct() {
         case DL_S0:
             if(pound) {
                 DL_State = DL_S1;
-            } else if(inside) {
-                DL_State = DL_S2;
             } else {
                 DL_State = DL_S0;
             }
@@ -41,7 +39,11 @@ void TickFct() {
             }
             break;
         case DL_S2:
-            DL_State = DL_S0;
+            if(inside) {
+                DL_State = DL_S0;
+            } else {
+                DL_State = DL_S2;
+            }
             break;
         default:
             DL_State = DL_SMStart;
