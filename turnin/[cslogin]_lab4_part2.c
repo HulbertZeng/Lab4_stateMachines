@@ -12,7 +12,7 @@
 #include "simAVRHeader.h"
 #endif
 
-enum AS_States { AS_SMStart, AS_Init, AS_Wait, AS_Increment, AS_Decrement, AS_Reset } AS_State;
+enum AS_States { AS_SMStart, AS_Init, AS_Wait, AS_Increment, AS_Decrement, AS_Reset, AS_Buffer } AS_State;
 
 void TickFct() {
     switch(AS_State) {
@@ -23,30 +23,33 @@ void TickFct() {
             AS_State = AS_Wait;
             break;
         case AS_Wait:
-            if((PINA && 0x03) == 0x01) {
+            if((PINA & 0x03) == 0x01) {
                 AS_State = AS_Increment;
-            } else if((PINA && 0x03) == 0x02) {
+            } else if((PINA & 0x03) == 0x02) {
                 AS_State = AS_Decrement;
-            } else if((PINA && 0x03) == 0x03) {
+            } else if((PINA & 0x03) == 0x03) {
                 AS_State = AS_Reset;
             } else {
                 AS_State = AS_Wait;
             }
             break;
         case AS_Increment:
-            if((PINA && 0x03) == 0x03) {
-                AS_State = AS_Reset;
-            }
-            AS_State = AS_Wait;
+            AS_State = AS_Buffer;
             break;
         case AS_Decrement:
-            if((PINA && 0x03) == 0x03) {
-                AS_State = AS_Reset;
-            }
-            AS_State = AS_Wait;
+            AS_State = AS_Buffer;
             break;
         case AS_Reset:
             AS_State = AS_Wait;
+            break;
+        case AS_Buffer:
+            if((PINA & 0x03) == 0x03) {
+                AS_State = AS_Reset;
+            } else if(((PINA & 0x03) == 0x01) || ((PINA & 0x03) == 0x02)) {
+                AS_State = AS_Buffer;
+            } else {
+                AS_State = AS_Wait;
+            }
             break;
         default:
             AS_State = AS_SMStart;
@@ -63,16 +66,18 @@ void TickFct() {
             break;
         case AS_Increment:
             if(PINC < 9) {
-                ++PINC;
+                PORTC = PINC + 1;
             }
             break;
         case AS_Decrement:
             if(PINC > 0) {
-                --PINC;
+                PORTC = PINC - 1;
             }
             break;
         case AS_Reset:
             PORTC = 0;
+            break;
+        case AS_Buffer:
             break;
         default:
             break;

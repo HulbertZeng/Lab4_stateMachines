@@ -15,7 +15,7 @@
 enum DL_States { DL_SMStart, DL_S0, DL_S1, DL_S2 } DL_State;
 
 void TickFct() {
-    unsigned char x = PINA & 0x01;
+    //unsigned char x = PINA & 0x01;
     unsigned char y = PINA & 0x02;
     unsigned char pound = PINA & 0x04;
     unsigned char inside = PINA & 0x80;
@@ -25,21 +25,23 @@ void TickFct() {
             DL_State = DL_S0;
             break;
         case DL_S0:
-            if(pound) {
+            if(pound == 1) {
                 DL_State = DL_S1;
             } else {
                 DL_State = DL_S0;
             }
             break;
         case DL_S1:
-            if(y) {
+            if(y == 1) {
                 DL_State = DL_S2;
+            } else if(PINA == 0x00) {
+                DL_State = DL_S1;
             } else {
                 DL_State = DL_S0;
             }
             break;
         case DL_S2:
-            if(inside) {
+            if(inside == 1) {
                 DL_State = DL_S0;
             } else {
                 DL_State = DL_S2;
