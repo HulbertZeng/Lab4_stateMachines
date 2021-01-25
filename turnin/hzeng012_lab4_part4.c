@@ -1,7 +1,7 @@
 /*	Author: lab
  *  Partner(s) Name: Hulbert Zeng
  *	Lab Section:
- *	Assignment: Lab #4  Exercise #1
+ *	Assignment: Lab #4  Exercise #4
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -12,7 +12,7 @@
 #include "simAVRHeader.h"
 #endif
 
-enum DL_States { DL_SMStart, DL_S0, DL_S1, DL_S2 } DL_State;
+enum DL_States { DL_SMStart, DL_S0, DL_S1, DL_S2, DL_S3 } DL_State;
 
 void TickFct() {
     //unsigned char x = PINA & 0x01;
@@ -43,6 +43,17 @@ void TickFct() {
         case DL_S2:
             if(inside == 1) {
                 DL_State = DL_S0;
+            } else if(pound == 1) {
+                DL_State = DL_S3;
+            } else {
+                DL_State = DL_S2;
+            }
+            break;
+        case DL_S3:
+            if(y == 1) {
+                DL_State = DL_S0;
+            } else if(PINA == 0x00) {
+                DL_State = DL_S3;
             } else {
                 DL_State = DL_S2;
             }
@@ -59,8 +70,12 @@ void TickFct() {
             PORTB = 0x00;
             break;
         case DL_S1:
+            PORTB = 0x00;
             break;
         case DL_S2:
+            PORTB = 0x01;
+            break;
+        case DL_S3:
             PORTB = 0x01;
             break;
         default:

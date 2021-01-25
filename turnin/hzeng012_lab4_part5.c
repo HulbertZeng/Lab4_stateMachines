@@ -1,7 +1,7 @@
 /*	Author: lab
  *  Partner(s) Name: Hulbert Zeng
  *	Lab Section:
- *	Assignment: Lab #4  Exercise #1
+ *	Assignment: Lab #4  Exercise #5
  *	Exercise Description: [optional - include for your own benefit]
  *
  *	I acknowledge all content contained herein, excluding template or example
@@ -12,50 +12,49 @@
 #include "simAVRHeader.h"
 #endif
 
-enum DL_States { DL_SMStart, DL_S0, DL_S1, DL_S2, DL_S3 } DL_State;
+enum DL_States { DL_SMStart, DL_S0, DL_S1 } DL_State;
+int counter = 0;
+
+unsigned char verifyPass(unsigned char p[], unsigned char i) {
+    if((p[i] & PINA) == 1) {
+        return 2;
+    } else if(PINA == 0x00) {
+        return 1;
+    }
+
+    return 0;
+}
 
 void TickFct() {
     //unsigned char x = PINA & 0x01;
-    unsigned char y = PINA & 0x02;
-    unsigned char pound = PINA & 0x04;
+    //unsigned char y = PINA & 0x02;
+    //unsigned char pound = PINA & 0x04;
     unsigned char inside = PINA & 0x80;
+    unsigned char password[4] = {0x04, 0x01, 0x02, 0x01};
+    unsigned char passflag = verifyPass(password, counter);
+    if(passflag == 2) {
+        ++counter;
+    }
+    if(passflag != 1) {
+        counter = 0;
+    }
 
     switch(DL_State) {
         case DL_SMStart:
             DL_State = DL_S0;
             break;
         case DL_S0:
-            if(pound == 1) {
+            if(counter == 4) {
                 DL_State = DL_S1;
             } else {
                 DL_State = DL_S0;
             }
             break;
         case DL_S1:
-            if(y == 1) {
-                DL_State = DL_S2;
-            } else if(PINA == 0x00) {
+            if(inside || counter == 4) {
+                DL_State = DL_S0;
+            } else {
                 DL_State = DL_S1;
-            } else {
-                DL_State = DL_S0;
-            }
-            break;
-        case DL_S2:
-            if(inside == 1) {
-                DL_State = DL_S0;
-            } else if(pound == 1) {
-                DL_State = DL_S3;
-            } else {
-                DL_State = DL_S2;
-            }
-            break;
-        case DL_S3:
-            if(y == 1) {
-                DL_State = DL_S0;
-            } else if(PINA == 0x00) {
-                DL_State = DL_S3;
-            } else {
-                DL_State = DL_S2;
             }
             break;
         default:
@@ -70,11 +69,7 @@ void TickFct() {
             PORTB = 0x00;
             break;
         case DL_S1:
-            break;
-        case DL_S2:
             PORTB = 0x01;
-            break;
-        case DL_S3:
             break;
         default:
             break;
